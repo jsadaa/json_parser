@@ -17,10 +17,14 @@ impl<'a> Parser<'a> {
 
     pub fn parse(&mut self) -> Result<JsonValue, String> {
         self.skip_whitespace();
-
-        match self.tokens.next() {
+        match self.tokens.peek() {
             Some(&JsonToken::LeftBrace) => {
-                self.parse_object()
+                self.tokens.next();
+                let result = self.parse_object();
+                match self.tokens.peek() {
+                    Some(&JsonToken::RightBrace) => result,
+                    _ => Err("Expected right brace".to_string()),
+                }
             },
             _ => Err("No tokens to parse".to_string()),
         }
@@ -31,37 +35,42 @@ impl<'a> Parser<'a> {
 
         loop {
             self.skip_whitespace();
-            match self.tokens.next() {
+            match self.tokens.peek() {
                 Some(JsonToken::String(key)) => {
+                    self.tokens.next();
                     self.skip_whitespace();
                     match self.tokens.next() {
                         Some(JsonToken::Colon) => match self.parse_value() {
-                            Ok(value) => obj.push((key.clone(), Box::new(value))),
+                            Ok(value) => {
+                                obj.push((key.clone(), Box::new(value)));
+                                self.skip_whitespace();
+                                match self.tokens.peek() {
+                                    Some(&JsonToken::Comma) => {
+                                        self.tokens.next();
+                                        self.skip_whitespace();
+                                        if let Some(JsonToken::RightBrace) = self.tokens.peek() {
+                                            return Err("Unexpected comma before right brace".to_string());
+                                        }
+                                        continue;
+                                    }
+                                    Some(&JsonToken::RightBrace) => {
+                                        break;
+                                    }
+                                    _ => return Err("Expected comma or right brace".to_string()),
+                                }
+                            }
                             Err(err) => return Err(err),
                         },
                         _ => return Err("Expected colon after key in object".to_string()),
                     };
-                    self.skip_whitespace();
-                    match self.tokens.peek() {
-                        Some(&JsonToken::Comma) => {
-                            self.tokens.next();
-                        }
-                        Some(&JsonToken::RightBrace) => {
-                            break;
-                        }
-                        _ => return Err("Expected comma or right brace".to_string()),
-                    }
                 }
-                Some(JsonToken::RightBrace) => {
-                    if obj.is_empty() {
-                        break;
-                    } else {
-                        return Err("Unexpected right brace".to_string());
-                    }
+                Some(&JsonToken::RightBrace) => {
+                    break;
                 }
                 _ => return Err("Expected string key or right brace".to_string()),
             }
         }
+
         Ok(JsonValue::JsonObject(obj))
     }
 
@@ -69,7 +78,10 @@ impl<'a> Parser<'a> {
         self.skip_whitespace();
 
         match self.tokens.peek() {
-            Some(JsonToken::LeftBrace) => self.parse_object(),
+            Some(JsonToken::LeftBrace) => {
+                self.tokens.next();
+                self.parse_object()
+            },
             Some(JsonToken::String(value)) => {
                 self.tokens.next();
                 Ok(JsonValue::String(value.clone()))
