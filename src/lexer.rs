@@ -11,9 +11,9 @@ impl<'a> Lexer<'a> {
     }
 
     pub(crate) fn tokenize(&mut self) -> Result<Vec<JsonToken>, String> {
-        let mut tokens = Vec::new();
+        let mut tokens: Vec<JsonToken> = Vec::new();
         while self.has_next() {
-            let token = self.next_token()?;
+            let token: JsonToken = self.next_token()?;
             tokens.push(token);
         }
 
@@ -21,7 +21,7 @@ impl<'a> Lexer<'a> {
     }
 
     fn next_char(&mut self) -> Option<char> {
-        let ch = self.input[self.index..].chars().next();
+        let ch: Option<char> = self.input[self.index..].chars().next();
         if ch.is_some() {
             self.index += 1;
         }
@@ -37,14 +37,14 @@ impl<'a> Lexer<'a> {
     }
 
     fn next_token(&mut self) -> Result<JsonToken, String> {
-        let ch = self.next_char();
+        let ch: Option<char> = self.next_char();
         match ch {
             Some('{') => Ok(JsonToken::LeftBrace),
             Some('}') => Ok(JsonToken::RightBrace),
             Some('[') => Ok(JsonToken::LeftBracket),
             Some(']') => Ok(JsonToken::RightBracket),
             Some('\"') => {
-                let s = self.read_string();
+                let s: Option<String> = self.read_string();
                 Ok(JsonToken::String(s.unwrap_or_default()))
             },
             Some(',') => Ok(JsonToken::Comma),
@@ -52,7 +52,7 @@ impl<'a> Lexer<'a> {
             Some(' ') | Some('\t') | Some('\n') | Some('\r') => Ok(JsonToken::Whitespace),
             Some(ch) => {
                 if ch.is_numeric() {
-                    let num = self.read_number(ch);
+                    let num: String = self.read_number(ch);
                     Ok(JsonToken::Number(num))
                 } else if ch == 't' || ch == 'f' || ch == 'n' {
                     match self.read_constant(ch, if ch == 'n' || ch == 't' { 3 } else { 4 }) {
