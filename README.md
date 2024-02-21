@@ -8,3 +8,7 @@
 > This is a work in progress and is not yet ready for use (and may never be).
 
 (Educational and recreational) Implementation of a simple JSON parser in Rust.
+
+## Contribution
+
+Any remarks or suggestions, are very welcome
