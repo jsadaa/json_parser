@@ -9,7 +9,15 @@ mod value;
 mod parser;
 
 fn main() {
-    let file = std::fs::read_to_string("./tests/step2/valid.json");
+    let args: Vec<String> = std::env::args().collect();
+
+    if args.len() != 2 {
+        eprintln!("Usage: {} <file>", args[0]);
+        std::process::exit(1);
+    }
+
+    let file = std::fs::read_to_string(&args[1]);
+
     if file.is_err() {
         eprintln!("Error : {}", file.err().unwrap());
         std::process::exit(1);
