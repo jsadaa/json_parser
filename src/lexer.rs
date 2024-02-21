@@ -28,6 +28,14 @@ impl<'a> Lexer<'a> {
         ch
     }
 
+    fn peek_char(&self) -> Option<char> {
+        self.input[self.index..].chars().next()
+    }
+
+    fn has_next(&self) -> bool {
+        self.index < self.input.len()
+    }
+
     fn next_token(&mut self) -> Result<JsonToken, String> {
         let ch = self.next_char();
         match ch {
@@ -46,10 +54,8 @@ impl<'a> Lexer<'a> {
                 if ch.is_numeric() {
                     let num = self.read_number(ch);
                     Ok(JsonToken::Number(num))
-
-                    // if is a boolean or null
                 } else if ch == 't' || ch == 'f' || ch == 'n' {
-                    match self.read_constant(ch, if ch == 'n' { 2 } else { 3 }) {
+                    match self.read_constant(ch, if ch == 'n' || ch == 't' { 3 } else { 4 }) {
                         Some(s) => match &s[..] {
                             "true" => Ok(JsonToken::Boolean(true)),
                             "false" => Ok(JsonToken::Boolean(false)),
@@ -106,13 +112,5 @@ impl<'a> Lexer<'a> {
         }
 
         num
-    }
-
-    fn peek_char(&self) -> Option<char> {
-        self.input[self.index..].chars().next()
-    }
-
-    fn has_next(&self) -> bool {
-        self.index < self.input.len()
     }
 }
