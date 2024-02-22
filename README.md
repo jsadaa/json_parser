@@ -15,7 +15,7 @@
 cargo run -- path/to/json/file.json
 ```
 
-or 
+or compile with
 
 ```bash
 cargo build
@@ -25,6 +25,13 @@ and then
 
 ```bash
 ./target/debug/json_parser path/to/json/file.json
+```
+
+or put the binary in your path and use it as a command line tool.
+
+```bash
+cp ./target/debug/json_parser /usr/local/bin
+json_parser path/to/json/file.json
 ```
 
 ## Contribution
