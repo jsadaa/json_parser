@@ -42,8 +42,9 @@ fn main() {
         std::process::exit(1);
     }
 
-    let value: JsonValue = result.unwrap();
+    let parsed_value: JsonValue = result.unwrap();
 
-    println!("{}", AstWrapper(&value));
+    println!("{}", AstWrapper(&parsed_value));
+    println!("{}", parsed_value);
     std::process::exit(0);
 }
