@@ -12,7 +12,7 @@
 ## Usage
 
 ```bash
-cargo run -- path/to/json/file.json
+cargo run -- [FILE]
 ```
 
 or compile with
@@ -24,14 +24,14 @@ cargo build
 and then
 
 ```bash
-./target/debug/json_parser path/to/json/file.json
+./target/debug/json_parser [FILE]
 ```
 
 or put the binary in your path and use it as a command line tool.
 
 ```bash
 cp ./target/debug/json_parser /usr/local/bin
-json_parser path/to/json/file.json
+json_parser [FILE]
 ```
 
 ## Contribution
