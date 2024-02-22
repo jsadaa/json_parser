@@ -68,4 +68,4 @@ JsonObject of size 5 {
 
 ## Contribution
 
-Any remarks or suggestions, are very welcome
+Any remarks or suggestions are very welcome, feel free to open an issue or a pull request.
