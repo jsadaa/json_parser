@@ -45,6 +45,5 @@ fn main() {
     let parsed_value: JsonValue = result.unwrap();
 
     println!("{}", AstWrapper(&parsed_value));
-    println!("{}", parsed_value);
     std::process::exit(0);
 }
