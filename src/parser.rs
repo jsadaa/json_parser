@@ -17,6 +17,7 @@ impl<'a> Parser<'a> {
 
     pub fn parse(&mut self) -> Result<JsonValue, String> {
         self.skip_whitespace();
+
         match self.tokens.peek() {
             Some(&JsonToken::LeftBrace) => {
                 self.tokens.next();
@@ -67,6 +68,7 @@ impl<'a> Parser<'a> {
                 }
             }
         }
+
         Ok(JsonValue::JsonArray(arr))
     }
 
@@ -107,6 +109,7 @@ impl<'a> Parser<'a> {
                 }
             }
         }
+
         Ok(JsonValue::JsonObject(obj))
     }
 

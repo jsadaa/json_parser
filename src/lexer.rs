@@ -12,6 +12,7 @@ impl<'a> Lexer<'a> {
 
     pub(crate) fn tokenize(&mut self) -> Result<Vec<JsonToken>, String> {
         let mut tokens: Vec<JsonToken> = Vec::new();
+
         while self.has_next() {
             let token: JsonToken = self.next_token()?;
             tokens.push(token);
@@ -22,9 +23,11 @@ impl<'a> Lexer<'a> {
 
     fn next_char(&mut self) -> Option<char> {
         let ch: Option<char> = self.input[self.index..].chars().next();
+
         if ch.is_some() {
             self.index += 1;
         }
+
         ch
     }
 
@@ -38,6 +41,7 @@ impl<'a> Lexer<'a> {
 
     fn next_token(&mut self) -> Result<JsonToken, String> {
         let ch: Option<char> = self.next_char();
+
         match ch {
             Some('{') => Ok(JsonToken::LeftBrace),
             Some('}') => Ok(JsonToken::RightBrace),
@@ -88,6 +92,7 @@ impl<'a> Lexer<'a> {
 
     fn read_string(&mut self) -> Option<String> {
         let mut s = String::new();
+
         loop {
             match self.next_char() {
                 Some(ch) if ch == '\"' => break,
@@ -95,6 +100,7 @@ impl<'a> Lexer<'a> {
                 None => return None,
             }
         }
+
         Some(s)
     }
 
