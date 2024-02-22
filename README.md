@@ -9,6 +9,24 @@
 
 (Educational and recreational) Implementation of a simple JSON parser in Rust.
 
+## Usage
+
+```bash
+cargo run -- path/to/json/file.json
+```
+
+or 
+
+```bash
+cargo build
+```
+
+and then
+
+```bash
+./target/debug/json_parser path/to/json/file.json
+```
+
 ## Contribution
 
 Any remarks or suggestions, are very welcome
