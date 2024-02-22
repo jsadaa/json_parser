@@ -3,7 +3,7 @@ use std::fmt;
 #[derive(Debug, Clone)]
 pub enum JsonValue {
     JsonObject(Vec<(String, Box<JsonValue>)>),
-    //JsonArray(Vec<Box<JsonValue>>),
+    JsonArray(Vec<Box<JsonValue>>),
     String(String),
     Number(f64),
     Boolean(bool),
@@ -22,6 +22,16 @@ impl fmt::Display for JsonValue {
                     write!(f, "\"{}\": {}", key, value)?;
                 }
                 write!(f, "}}")
+            },
+            JsonValue::JsonArray(ref arr) => {
+                write!(f, "[")?;
+                for (i, ref value) in arr.iter().enumerate() {
+                    if i > 0 {
+                        write!(f, ", ")?;
+                    }
+                    write!(f, "{}", value)?;
+                }
+                write!(f, "]")
             },
             JsonValue::String(ref s) => write!(f, "\"{}\"", s),
             JsonValue::Number(ref n) => write!(f, "{}", n),
@@ -45,6 +55,14 @@ impl AstDisplay for JsonValue {
                     value.ast_fmt(f, depth+4)?;
                 }
                 writeln!(f, "{}}}", " ".repeat(depth))
+            },
+            JsonValue::JsonArray(ref arr) => {
+                writeln!(f, "{}JsonArray of size {} [", " ".repeat(depth), arr.len())?;
+                for value in arr {
+                    write!(f, "{}", " ".repeat(depth+2))?;
+                    value.ast_fmt(f, depth+2)?;
+                }
+                writeln!(f, "{}]", " ".repeat(depth))
             },
             JsonValue::String(ref s) => writeln!(f, "{}String: \"{}\"", " ".repeat(depth), s),
             JsonValue::Number(ref n) => writeln!(f, "{}Number: {}", " ".repeat(depth), n),
