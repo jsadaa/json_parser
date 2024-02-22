@@ -1,55 +1,55 @@
+use std::iter::Peekable;
+use std::str::Chars;
 use crate::token::JsonToken;
 
 pub struct Lexer<'a> {
-    input: &'a str,
-    index: usize,
+    chars: Peekable<Chars<'a>>,
 }
 
 impl<'a> Lexer<'a> {
     pub fn new(input: &'a str) -> Self {
-        Lexer { input, index: 0 }
+        Lexer {
+            chars: input.chars().peekable(),
+        }
     }
 
     pub(crate) fn tokenize(&mut self) -> Result<Vec<JsonToken>, String> {
         let mut tokens: Vec<JsonToken> = Vec::new();
 
         while self.has_next() {
-            let token: JsonToken = self.next_token()?;
-            tokens.push(token);
+            let token: Result<JsonToken, _> = self.next_token();
+            match token {
+                Ok(t) => tokens.push(t),
+                Err(e) => return Err(e),
+            }
         }
-
         Ok(tokens)
     }
 
     fn next_char(&mut self) -> Option<char> {
-        let ch: Option<char> = self.input[self.index..].chars().next();
-
-        if ch.is_some() {
-            self.index += 1;
-        }
-
-        ch
+        self.chars.next()
     }
 
-    fn peek_char(&self) -> Option<char> {
-        self.input[self.index..].chars().next()
+    fn peek_char(&mut self) -> Option<&char> {
+        self.chars.peek()
     }
 
-    fn has_next(&self) -> bool {
-        self.index < self.input.len()
+    fn has_next(&mut self) -> bool {
+        self.peek_char().is_some()
     }
 
     fn next_token(&mut self) -> Result<JsonToken, String> {
-        let ch: Option<char> = self.next_char();
-
-        match ch {
+        match self.next_char() {
             Some('{') => Ok(JsonToken::LeftBrace),
             Some('}') => Ok(JsonToken::RightBrace),
             Some('[') => Ok(JsonToken::LeftBracket),
             Some(']') => Ok(JsonToken::RightBracket),
             Some('\"') => {
-                let s: Option<String> = self.read_string();
-                Ok(JsonToken::String(s.unwrap_or_default()))
+                let s = self.read_string();
+                match s {
+                    Some(s) => Ok(JsonToken::String(s)),
+                    None => Err("Unexpected end of input".to_string()),
+                }
             },
             Some(',') => Ok(JsonToken::Comma),
             Some(':') => Ok(JsonToken::Colon),
@@ -59,64 +59,63 @@ impl<'a> Lexer<'a> {
                     let num: String = self.read_number(ch);
                     Ok(JsonToken::Number(num))
                 } else if ch == 't' || ch == 'f' || ch == 'n' {
-                    match self.read_constant(ch, if ch == 'n' || ch == 't' { 3 } else { 4 }) {
-                        Some(s) => match &s[..] {
-                            "true" => Ok(JsonToken::Boolean(true)),
-                            "false" => Ok(JsonToken::Boolean(false)),
-                            "null" => Ok(JsonToken::Null),
-                            _ => Err(format!("Invalid constant: {}", s)),
-                        },
-                        None => Err("Unexpected end of input".to_string()),
+                    let s: String = self.read_constant(if ch == 'n' || ch == 't' { 3 } else { 4 }, ch);
+                    match s.as_str() {
+                        "true" => Ok(JsonToken::Boolean(true)),
+                        "false" => Ok(JsonToken::Boolean(false)),
+                        "null" => Ok(JsonToken::Null),
+                        _ => Err(format!("Invalid constant: {}", s)),
                     }
                 } else {
                     Err(format!("Invalid character: {}", ch))
                 }
             }
-            None => Err("Unexpected end of input".to_string())
+            None => Err("Unexpected end of input".to_string()),
         }
     }
 
-    fn read_constant(&mut self, initial_char: char, len: usize) -> Option<String> {
+    fn read_constant(&mut self, len: usize, initial_char: char) -> String {
         let mut s = String::new();
         s.push(initial_char);
 
         for _ in 0..len {
             match self.next_char() {
                 Some(ch) => s.push(ch),
-                None => return None,
+                None => break,
             }
         }
 
-        Some(s)
+        s
     }
 
     fn read_string(&mut self) -> Option<String> {
         let mut s = String::new();
-
         loop {
-            match self.next_char() {
-                Some(ch) if ch == '\"' => break,
-                Some(ch) => s.push(ch),
+            match self.peek_char() {
+                Some(&'\"') => {
+                    self.chars.next(); // Consume the "
+                    return Some(s);
+                },
+                Some(ch) => {
+                    s.push(*ch);
+                    self.chars.next(); // Consume the current character
+                },
                 None => return None,
             }
         }
-
-        Some(s)
     }
 
     fn read_number(&mut self, initial_char: char) -> String {
         let mut num = String::new();
         num.push(initial_char);
-
-        loop {
-            match self.peek_char() {
-                Some(next_ch) if next_ch.is_numeric() || next_ch == '.' => {
-                    num.push(self.next_char().unwrap());
-                }
-                _ => break,
+        while let Some(&next_ch) = self.peek_char() {
+            if next_ch.is_numeric() || next_ch == '.' {
+                num.push(next_ch);
+                self.chars.next(); // Consume the current character
+            } else {
+                break;
             }
         }
-
         num
     }
 }
