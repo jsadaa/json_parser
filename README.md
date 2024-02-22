@@ -59,7 +59,7 @@ JsonObject of size 5 {
     Key: key-b, Value:     Boolean: true
     Key: key-o, Value:     JsonObject of size 1 {
         Key: inner key, Value:         String: "inner value"
-    }
+        }
     Key: key-l, Value:     JsonArray of size 1 [
                 String: "list value"
         ]
